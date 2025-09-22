@@ -1,0 +1,24 @@
+databases:
+  - name: budgetwise-db
+    databaseName: budgetwise
+    user: budgetwise
+    plan: free
+
+services:
+  - type: web
+    name: budgetwise-app
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python fix_database.py"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: sqlite:///budgetwise.db
+        fromDatabase:
+          name: budgetwise-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
