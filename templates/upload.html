@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Transactions - BudgetWise AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+    }
+    
+    .upload-area {
+        border: 3px dashed #667eea;
+        border-radius: 20px;
+        padding: 60px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .upload-area:hover {
+        background: #e9ecef;
+        border-color: #764ba2;
+    }
+    
+    .upload-area.dragover {
+        background: #e7e9ff;
+        border-color: #4361ee;
+    }
+    
+    .file-info {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+    }
+    
+    .sample-format {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+    
+    .progress-container {
+        display: none;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container upload-container">
+    <h2 class="text-center mb-4">
+        <i class="bi bi-cloud-upload"></i> Upload Your Transactions
+    </h2>
+    
+    <!-- Upload Area -->
+    <div class="upload-area" id="uploadArea">
+        <i class="bi bi-file-earmark-arrow-up" style="font-size: 4rem; color: #667eea;"></i>
+        <h4 class="mt-3">Drag & Drop Your CSV File Here</h4>
+        <p class="text-muted">or click to browse</p>
+        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+        <button class="btn btn-primary mt-3" onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-folder-open"></i> Select File
+        </button>
+    </div>
+    
+    <!-- File Info -->
+    <div class="file-info" id="fileInfo">
+        <h5><i class="bi bi-file-earmark-check"></i> Selected File</h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="mb-1"><strong>Name:</strong> <span id="fileName"></span></p>
+                <p class="mb-1"><strong>Size:</strong> <span id="fileSize"></span></p>
+                <p class="mb-0"><strong>Type:</strong> <span id="fileType"></span></p>
+            </div>
+            <button class="btn btn-success" onclick="uploadFile()">
+                <i class="bi bi-cloud-arrow-up"></i> Upload & Process
+            </button>
+        </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progressContainer">
+        <h5>Processing Your Transactions...</h5>
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 id="progressBar" role="progressbar" style="width: 0%">0%</div>
+        </div>
+        <p class="text-muted mt-2" id="progressStatus">Uploading file...</p>
+    </div>
+    
+    <!-- Results -->
+    <div class="alert alert-success mt-4" id="successAlert" style="display: none;">
+        <h5><i class="bi bi-check-circle"></i> Success!</h5>
+        <p id="successMessage"></p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="bi bi-speedometer2"></i> Go to Dashboard
+        </a>
+    </div>
+    
+    <div class="alert alert-danger mt-4" id="errorAlert" style="display: none;">
+        <h5><i class="bi bi-x-circle"></i> Error</h5>
+        <p id="errorMessage"></p>
+    </div>
+    
+    <!-- Sample Format -->
+    <div class="sample-format">
+        <h5><i class="bi bi-info-circle"></i> CSV Format Guide</h5>
+        <p>Your CSV file should contain the following columns:</p>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>Date</code></td>
+                    <td>Transaction date</td>
+                    <td>2024-01-15 or 15/01/2024</td>
+                </tr>
+                <tr>
+                    <td><code>Description</code></td>
+                    <td>Transaction description</td>
+                    <td>Swiggy Order Food</td>
+                </tr>
+                <tr>
+                    <td><code>Amount</code></td>
+                    <td>Transaction amount</td>
+                    <td>450 or 450.00</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="mt-3">
+            <a href="{{ url_for('static', filename='data/sample_transactions.csv') }}" 
+               class="btn btn-outline-primary btn-sm" download>
+                <i class="bi bi-download"></i> Download Sample CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Drag and drop functionality
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileSelect(files[0]);
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+    }
+});
+
+function handleFileSelect(file) {
+    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+        alert('Please select a CSV file');
+        return;
+    }
+    
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    document.getElementById('fileType').textContent = file.type || 'CSV';
+    fileInfo.style.display = 'block';
+    
+    // Store file for upload
+    window.selectedFile = file;
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+async function uploadFile() {
+    if (!window.selectedFile) {
+        alert('Please select a file first');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', window.selectedFile);
+    
+    // Show progress
+    document.getElementById('progressContainer').style.display = 'block';
+    document.getElementById('successAlert').style.display = 'none';
+    document.getElementById('errorAlert').style.display = 'none';
+    
+    // Simulate progress
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const progressStatus = document.getElementById('progressStatus');
+    
+    const progressInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += 10;
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+            
+            if (progress < 30) {
+                progressStatus.textContent = 'Uploading file...';
+            } else if (progress < 60) {
+                progressStatus.textContent = 'Processing transactions...';
+            } else {
+                progressStatus.textContent = 'Generating insights...';
+            }
+        }
+    }, 500);
+    
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        
+        if (response.ok && data.success) {
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('successMessage').textContent = data.message;
+            document.getElementById('successAlert').style.display = 'block';
+        } else {
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('errorMessage').textContent = data.error || 'Upload failed';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+    } catch (error) {
+        clearInterval(progressInterval);
+        document.getElementById('progressContainer').style.display = 'none';
+        document.getElementById('errorMessage').textContent = 'Network error: ' + error.message;
+        document.getElementById('errorAlert').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

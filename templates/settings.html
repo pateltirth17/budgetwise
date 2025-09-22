@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - BudgetWiseAI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-cog"></i> Settings</h4>
+                </div>
+                <div class="card-body">
+                    <form id="settingsForm">
+                        <h5>Display Preferences</h5>
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <label for="currencyDisplay" class="form-label">Currency Display Format</label>
+                            <select class="form-select" id="currencyDisplay" name="currency">
+                                <option value="INR" {% if currency == 'INR' %}selected{% endif %}>
+                                    ₹ Indian Rupee (Lakhs/Crores)
+                                </option>
+                                <option value="INR-K" {% if currency == 'INR-K' %}selected{% endif %}>
+                                    ₹ Indian Rupee (Thousands)
+                                </option>
+                            </select>
+                            <div class="form-text">Choose how currency values are displayed</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="dateFormat" class="form-label">Date Format</label>
+                            <select class="form-select" id="dateFormat" name="date_format">
+                                <option value="DD/MM/YYYY" {% if date_format == 'DD/MM/YYYY' %}selected{% endif %}>
+                                    DD/MM/YYYY (31/12/2024)
+                                </option>
+                                <option value="MM/DD/YYYY" {% if date_format == 'MM/DD/YYYY' %}selected{% endif %}>
+                                    MM/DD/YYYY (12/31/2024)
+                                </option>
+                                <option value="YYYY-MM-DD" {% if date_format == 'YYYY-MM-DD' %}selected{% endif %}>
+                                    YYYY-MM-DD (2024-12-31)
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <h5 class="mt-4">Notification Preferences</h5>
+                        <hr>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                Email notifications for budget alerts
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="monthlyReports" checked>
+                            <label class="form-check-label" for="monthlyReports">
+                                Monthly spending reports
+                            </label>
+                        </div>
+        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function saveSettings() {
+    const form = document.getElementById('settingsForm');
+    const formData = new FormData(form);
+    
+    const settings = {
+        currency: formData.get('currency'),
+        date_format: formData.get('date_format'),
+        email_notifications: document.getElementById('emailNotifications').checked,
+        monthly_reports: document.getElementById('monthlyReports').checked
+    };
+    
+    try {
+        const response = await fetch('/api/save_settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            alert('Settings saved successfully!');
+            // Optionally redirect to dashboard
+            // window.location.href = '/dashboard';
+        } else {
+            alert('Error saving settings: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to save settings');
+    }
+}
+</script>
+{% endblock %}

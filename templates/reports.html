@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - BudgetWiseAI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4"><i class="fas fa-file-alt"></i> Financial Reports</h2>
+            
+            <div class="row">
+                <!-- Generate Report Card -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0"><i class="fas fa-download"></i> Generate Report</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('generate_report') }}">
+                                <div class="mb-3">
+                                    <label for="report_type" class="form-label">Report Type</label>
+                                    <select class="form-select" id="report_type" name="report_type" onchange="toggleDateInputs()">
+                                        <option value="monthly">Monthly Report</option>
+                                        <option value="yearly">Yearly Report</option>
+                                        <option value="custom">Custom Date Range</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="monthly_input" class="mb-3">
+                                    <label for="month" class="form-label">Select Month</label>
+                                    <input type="month" class="form-control" id="month" name="month" 
+                                           value="{{ current_month }}">
+                                </div>
+                                
+                                <div id="yearly_input" class="mb-3" style="display: none;">
+                                    <label for="year" class="form-label">Select Year</label>
+                                    <input type="number" class="form-control" id="year" name="year" 
+                                           value="{{ current_year }}" min="2020" max="{{ current_year }}">
+                                </div>
+                                
+                                <div id="custom_input" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="end_date" name="end_date">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-pdf"></i> Generate PDF Report
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats Card -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Quick Statistics</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="quickStatsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Export Options -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-share-square"></i> Export Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('export_transactions') }}" class="btn btn-outline-success btn-lg w-100">
+                                <i class="fas fa-file-csv fa-2x mb-2"></i><br>
+                                Export as CSV
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <button onclick="generateMonthlyReport()" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                                Current Month Report
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button onclick="generateYearlyReport()" class="btn btn-outline-warning btn-lg w-100">
+                                <i class="fas fa-calendar fa-2x mb-2"></i><br>
+                                Current Year Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js if not already included -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<script>
+function toggleDateInputs() {
+    const reportType = document.getElementById('report_type').value;
+    document.getElementById('monthly_input').style.display = reportType === 'monthly' ? 'block' : 'none';
+    document.getElementById('yearly_input').style.display = reportType === 'yearly' ? 'block' : 'none';
+    document.getElementById('custom_input').style.display = reportType === 'custom' ? 'block' : 'none';
+}
+
+function generateMonthlyReport() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("generate_report") }}';
+    
+    const reportType = document.createElement('input');
+    reportType.type = 'hidden';
+    reportType.name = 'report_type';
+    reportType.value = 'monthly';
+    
+    const month = document.createElement('input');
+    month.type = 'hidden';
+    month.name = 'month';
+    month.value = '{{ current_month }}';
+    
+    form.appendChild(reportType);
+    form.appendChild(month);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function generateYearlyReport() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("generate_report") }}';
+    
+    const reportType = document.createElement('input');
+    reportType.type = 'hidden';
+    reportType.name = 'report_type';
+    reportType.value = 'yearly';
+    
+    const year = document.createElement('input');
+    year.type = 'hidden';
+    year.name = 'year';
+    year.value = '{{ current_year }}';
+    
+    form.appendChild(reportType);
+    form.appendChild(year);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Load quick stats chart
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/dashboard_data?days=30')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.categories) {
+                const ctx = document.getElementById('quickStatsChart');
+                if (ctx) {
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(data.categories),
+                            datasets: [{
+                                data: Object.values(data.categories),
+                                backgroundColor: [
+                        '#FF0000', '#FF8000', '#FFBF00',
+                        '#FFFF00', '#BFFF00', '#00FF00',
+                        '#00BF80', '#00aaffff', '#4000FF',
+                        '#8000FF','#BF00FF'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Last 30 Days Expenses by Category'
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        })
+        .catch(error => console.error('Error loading stats:', error));
+});
+</script>
+{% endblock %}

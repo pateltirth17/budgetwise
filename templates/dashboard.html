@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BudgetWise AI</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    
+    <style>
+        :root {
+            --sidebar-width: 220px;
+            --primary: #8B7AA8;
+            --secondary: #B8A9D3;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f0f2f5;
+            overflow-x: hidden;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .sidebar-nav {
+            padding: 10px 0;
+        }
+        /* Clickable User Info without underline */
+        .user-info-link {
+            text-decoration: none !important;
+            display: block;
+            margin: 15px;
+            color: inherit;
+        }
+
+        .user-info-link:hover,
+        .user-info-link:focus,
+        .user-info-link:active,
+        .user-info-link:visited {
+            text-decoration: none !important;
+            color: inherit;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .user-info:hover {
+            background: #e9ecef;
+        }
+        
+        .user-info .avatar {
+            font-size: 24px;
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .user-info .user-details {
+            flex: 1;
+        }
+        
+        .user-info .username {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .user-info .email {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .user-info .user-arrow {
+            color: #999;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #f3f4f6;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+        
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+        
+        .summary-card .card-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 5px 0;
+        }
+        
+        .summary-card .card-title {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        
+        .summary-card .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            float: right;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 300px;
+            position: relative;
+        }
+        
+        .chart-container canvas {
+            max-height: 250px !important;
+        }
+        
+        .transaction-list {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .transaction-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .page-content {
+            display: none;
+        }
+        
+        .page-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <!-- Logo/Brand Section -->
+        <div class="sidebar-header">
+            <i class="bi bi-wallet2"></i>
+            <span>BudgetWise AI</span>
+        </div>
+        
+        <!-- User Info Section (Make it clickable) -->
+        <a href="{{ url_for('profile') }}" class="user-info-link">
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-details">
+                    <div class="username">{{ current_user.username }}</div>
+                    <div class="email">{{ current_user.email }}</div>
+                </div>
+                <div class="user-arrow">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </div>
+        </a>
+        
+        <nav class="sidebar-nav">
+            <a class="nav-item active" data-page="overview">
+                <i class="bi bi-speedometer2"></i> Overview
+            </a>
+            <a class="nav-item" data-page="transactions">
+                <i class="bi bi-receipt"></i> Transactions
+            </a>
+            <a class="nav-item" data-page="predictions">
+                <i class="bi bi-graph-up-arrow"></i> Predictions
+            </a>
+            <a class="nav-item" data-page="budgets">
+                <i class="bi bi-piggy-bank"></i> Budgets
+            </a>
+            <a class="nav-item" data-page="reports">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reports
+            </a>
+            <a class="nav-item" data-page="settings">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <hr>
+            <a href="{{ url_for('logout') }}" class="nav-item text-danger">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <h4 class="mb-0" id="pageTitle">Overview</h4>
+            <div class="page-actions" id="pageActions">
+                <!-- Actions will be dynamically inserted here based on active page -->
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" style="display:none;" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        
+        <!-- Overview Page -->
+        <div id="overview-page" class="page-content active">
+            <!-- Action buttons for overview page -->
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="bi bi-cloud-upload"></i> Upload CSV
+                </button>
+                <button class="btn btn-sm btn-success" onclick="window.location.href='{{ url_for('add_transaction') }}'">
+                    <i class="bi bi-plus"></i> Add Transaction
+                </button>
+            </div>
+            
+            <!-- Summary Cards Row -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-3 col-6">
+                    <div class="summary-card">
+                        <div class="card-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="card-title">Total Spending</div>
+                        <div class="card-value" id="totalSpending">₹0</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="summary-card">
+                        <div class="card-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="card-title">AI Predicted (30 days)</div>
+                        <div class="card-value" id="predictedAmount">₹0</div>
+                        <small class="text-muted">
+                            <span id="overview-confidence">0%</span> confidence
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="summary-card">
+                        <div class="card-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-piggy-bank"></i>
+                        </div>
+                        <div class="card-title">Savings</div>
+                        <div class="card-value" id="savingsAmount">₹0</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="summary-card">
+                        <div class="card-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="card-title">Transactions</div>
+                        <div class="card-value" id="transactionCount">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <div class="chart-container">
+                        <h6 class="mb-3">Spending Trend (Last 30 Days)</h6>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="chart-container">
+                        <h6 class="mb-3">Categories</h6>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Transactions -->
+            <div class="transaction-list">
+                <h6 class="mb-3">Recent Transactions</h6>
+                {% for transaction in recent_transactions[:10] %}
+                <div class="transaction-item">
+                    <div>
+                        <strong>{{ transaction.description[:30] }}</strong><br>
+                        <small class="text-muted">{{ transaction.date.strftime('%d %b %Y') }} • {{ transaction.category }}</small>
+                    </div>
+                    <div class="text-end">
+                        {% if transaction.transaction_type == 'income' %}
+                            <span class="text-success fw-bold">+₹{{ "{:,.0f}".format(transaction.amount) }}</span>
+                        {% else %}
+                            <span class="text-danger fw-bold">-₹{{ "{:,.0f}".format(transaction.amount) }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not recent_transactions %}
+                <p class="text-muted text-center">No transactions yet. Upload CSV or add manually.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Transactions Page -->
+        <div id="transactions-page" class="page-content">
+            <div class="bg-white rounded p-4">
+                <!-- Action buttons for transactions page -->
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>All Transactions</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                            <i class="bi bi-funnel"></i> Filters
+                        </button>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                            <i class="bi bi-cloud-upload"></i> Upload CSV
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="window.location.href='{{ url_for('add_transaction') }}'">
+                            <i class="bi bi-plus"></i> Add Transaction
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="collapse mb-3" id="filterSection">
+                    <div class="card card-body">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterCategory">
+                                    <option value="">All Categories</option>
+                                    <option value="Food & Dining">Food & Dining</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Utilities">Utilities</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control form-control-sm" id="filterDateFrom" placeholder="From Date">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control form-control-sm" id="filterDateTo" placeholder="To Date">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary btn-sm w-100" id="applyFilters" onclick="applyTransactionFilters()">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td><span class="badge bg-primary">{{ transaction.category }}</span></td>
+                                <td>
+                                    {% if transaction.transaction_type == 'income' %}
+                                        <span class="badge bg-success">Income</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Expense</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if transaction.transaction_type == 'income' %}
+                                        <span class="text-success">+₹{{ "{:,.0f}".format(transaction.amount) }}</span>
+                                    {% else %}
+                                        <span class="text-danger">-₹{{ "{:,.0f}".format(transaction.amount) }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('transactions') }}" class="btn btn-primary">View All Transactions</a>
+            </div>
+        </div>
+        
+        <!-- Predictions Page -->
+        <div id="predictions-page" class="page-content">
+            <div class="bg-white rounded p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="mb-1">🤖 AI-Powered Spending Predictions</h5>
+                        <p class="text-muted mb-0">Get intelligent predictions for your future spending based on your transaction history.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="getPredictions()" id="predict-btn">
+                        <i class="bi bi-brain"></i> Generate Predictions
+                    </button>
+                </div>
+                
+                <!-- Prediction Results Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="mb-2">
+                                    <i class="bi bi-calendar-month text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <h6 class="card-title text-muted">Next 30 Days Total</h6>
+                                <h3 id="prediction-total" class="text-primary mb-0">₹0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="mb-2">
+                                    <i class="bi bi-graph-up text-info" style="font-size: 2rem;"></i>
+                                </div>
+                                <h6 class="card-title text-muted">Daily Average</h6>
+                                <h3 id="prediction-average" class="text-info mb-0">₹0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="mb-2">
+                                    <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <h6 class="card-title text-muted">Confidence Level</h6>
+                                <h3 id="prediction-confidence" class="text-success mb-0">0%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Prediction Status Message -->
+                <div class="alert alert-light border" role="alert">
+                    <i class="bi bi-info-circle text-primary"></i>
+                    <span id="prediction-message" class="ms-2">Click "Generate Predictions" to see AI-powered spending forecasts based on your transaction history.</span>
+                </div>
+                
+                <!-- Detailed Results Container -->
+                <div id="predictionResults"></div>
+                
+                <!-- How It Works Section -->
+                <div class="mt-4">
+                    <h6 class="text-muted">How AI Predictions Work:</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2">
+                                        <i class="bi bi-database text-primary"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Data Analysis</h6>
+                                    <small class="text-muted">Analyzes your spending patterns and transaction history</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info bg-opacity-10 rounded-circle p-2">
+                                        <i class="bi bi-cpu text-info"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">LSTM Neural Network</h6>
+                                    <small class="text-muted">Uses advanced machine learning for accurate predictions</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-2">
+                                        <i class="bi bi-graph-up-arrow text-success"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Future Insights</h6>
+                                    <small class="text-muted">Provides forecasts to help you plan better</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Budgets Page -->
+        <div id="budgets-page" class="page-content">
+            <div class="bg-white rounded p-4">
+                <h5>Budget Management</h5>
+                <p>Set and track your monthly budgets by category.</p>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Monthly Budget Overview</h6>
+                                <p class="text-muted">Track your spending against set budgets</p>
+                                <a href="{{ url_for('budgets') }}" class="btn btn-primary">
+                                    <i class="bi bi-piggy-bank"></i> Manage Budgets
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Page -->
+        <div id="reports-page" class="page-content">
+            <div class="bg-white rounded p-4">
+                <h5>Financial Reports</h5>
+                <p>Generate detailed reports of your spending patterns.</p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-calendar-month text-primary" style="font-size: 2rem;"></i>
+                                <h6 class="card-title mt-2">Monthly Report</h6>
+                                <p class="text-muted small">Detailed monthly spending analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up text-success" style="font-size: 2rem;"></i>
+                                <h6 class="card-title mt-2">Trends Report</h6>
+                                <p class="text-muted small">Spending patterns over time</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-pie-chart text-info" style="font-size: 2rem;"></i>
+                                <h6 class="card-title mt-2">Category Report</h6>
+                                <p class="text-muted small">Breakdown by categories</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('reports') }}" class="btn btn-primary">
+                        <i class="bi bi-file-pdf"></i> Generate Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Page -->
+        <div id="settings-page" class="page-content">
+            <div class="bg-white rounded p-4">
+                <h5>Settings</h5>
+                <div class="mb-3">
+                    <label class="form-label">Currency Display</label>
+                    <select class="form-select" id="currencyDisplay">
+                        <option value="INR">₹ Indian Rupee (Lakhs/Crores)</option>
+                        <option value="INR-K">₹ Indian Rupee (Thousands)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date Format</label>
+                    <select class="form-select" id="dateFormat">
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                </div>
+                <hr>
+                <h5 class="mt-4">Notification Preferences</h5>
+                
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                    <label class="form-check-label" for="emailNotifications">
+                        Email notifications for budget alerts
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="monthlyReports" checked>
+                    <label class="form-check-label" for="monthlyReports">
+                        Monthly spending reports
+                    </label>
+                </div>
+                
+                <hr>
+                <h5 class="mt-4">Account Settings</h5>
+                <div class="mb-3">
+                    <button class="btn btn-outline-primary" onclick="window.location.href='{{ url_for('profile') }}'">
+                        <i class="bi bi-person"></i> Edit Profile
+                    </button>
+                    <button class="btn btn-outline-danger ms-2" onclick="window.location.href='{{ url_for('change_password') }}'">
+                        <i class="bi bi-key"></i> Change Password
+                    </button>
+                </div>
+                
+                <button class="btn btn-primary" id="saveSettings" onclick="saveSettings()">
+                    <i class="bi bi-save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Transactions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" class="form-control" id="csvFile" accept=".csv">
+                    <div class="form-text">Upload CSV with Date, Time, Description, Amount, Category, Payment mode, Transaction ID columns</div>
+                    <div id="uploadProgress" style="display:none;" class="mt-3">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div id="uploadResult" style="display:none;" class="alert mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="uploadFile()">
+                        <i class="bi bi-upload"></i> Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dashboard JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    
+    <script>
+        // Override the switchPage function to handle page-specific actions
+        const originalSwitchPage = window.switchPage || function() {};
+        
+        window.switchPage = function(pageName) {
+            // Call original switch page functionality if it exists
+            if (typeof originalSwitchPage === 'function') {
+                originalSwitchPage(pageName);
+            }
+            
+            // Update page title in top bar
+            const titles = {
+                'overview': 'Overview',
+                'transactions': 'Transactions',
+                'predictions': 'AI Predictions',
+                'budgets': 'Budget Management',
+                'reports': 'Financial Reports',
+                'settings': 'Settings'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[pageName] || 'Dashboard';
+            
+            // Hide all page contents
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            const selectedPage = document.getElementById(pageName + '-page');
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+            }
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        };
+        
+        // Add click handlers to nav items
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pageName = this.getAttribute('data-page');
+                switchPage(pageName);
+            });
+        });
+    </script>
+</body>
+</html>

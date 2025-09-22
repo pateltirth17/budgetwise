@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - BudgetWise AI{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    
+
+<!-- Add Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block navbar %}
+<!-- Premium Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-wallet2"></i> BudgetWise AI
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#how-it-works">How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#testimonials">Testimonials</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pricing">Pricing</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-premium-outline btn-sm" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-premium btn-sm" href="{{ url_for('signup') }}">Get Started Free</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="mb-3">
+                    <span class="premium-badge pulse">
+                        <i class="bi bi-star-fill"></i> #1 Finance App in India
+                    </span>
+                </div>
+                <h1 class="hero-title">
+                    Smart Money Management with AI
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Transform your financial future with India's most advanced AI-powered personal finance platform. Track, predict, and optimize your spending effortlessly.
+                </p>
+                <div class="d-flex gap-3 flex-wrap mb-5">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-premium btn-lg">
+                            <i class="bi bi-speedometer2"></i> Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('signup') }}" class="btn btn-premium btn-lg">
+                            <i class="bi bi-rocket-takeoff"></i> Start Free Trial
+                        </a>
+                    {% endif %}
+                    <button class="btn btn-premium-outline btn-lg" data-bs-toggle="modal" data-bs-target="#demoModal">
+                        <i class="bi bi-play-circle"></i> Watch Demo
+                    </button>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                            </div>
+                            <strong>4.9/5</strong>
+                        </div>
+                        <small class="text-muted">From 10,000+ users</small>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-check text-success me-2" style="font-size: 1.5rem;"></i>
+                            <strong>Bank-level Security</strong>
+                        </div>
+                        <small class="text-muted">256-bit encryption</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="dashboard-preview p-0">
+                    <div class="mini-dashboard-header">
+                        <span style="font-weight: 600;">
+                            <i class="bi bi-wallet2"></i> BudgetWise Dashboard
+                        </span>
+                        <span class="badge bg-white text-primary">LIVE</span>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="stat-card p-3">
+                                    <small class="text-muted">Monthly Spending</small>
+                                    <h4 class="stat-number mb-0">₹52,340</h4>
+                                    <small class="text-success">
+                                        <i class="bi bi-arrow-down"></i> 12% less
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card p-3">
+                                    <small class="text-muted">AI Predicted</small>
+                                    <h4 class="stat-number mb-0">₹48,500</h4>
+                                    <small class="text-primary">
+                                        <i class="bi bi-cpu"></i> 94% accuracy
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3" style="background: var(--lighter-purple); border-radius: 15px;">
+                            <small class="text-muted fw-bold">AI Insights</small>
+                            <div class="mt-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="feature-icon me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                        <i class="bi bi-lightbulb"></i>
+                                    </div>
+                                    <small>You can save ₹8,000 by reducing dining expenses</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: 75%; background: var(--gradient-primary)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">50K+</div>
+                    <p class="text-muted mb-0">Active Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">₹2.5Cr</div>
+                    <p class="text-muted mb-0">Money Saved</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">94%</div>
+                    <p class="text-muted mb-0">AI Accuracy</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">4.9⭐</div>
+                    <p class="text-muted mb-0">User Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Premium Features</h2>
+            <p class="lead text-muted">Everything you need for complete financial control</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h4>AI-Powered Predictions</h4>
+                    <p>Advanced LSTM neural networks analyze your spending patterns and predict future expenses with 94% accuracy.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-pie-chart-fill"></i>
+                    </div>
+                    <h4>Smart Categorization</h4>
+                    <p>Automatically categorize every transaction from bank statements and UPI payments with intelligent recognition.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h4>Bank-Level Security</h4>
+                    <p>Your data is protected with 256-bit encryption. We never store sensitive banking credentials.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4>Real-time Analytics</h4>
+                    <p>Get instant insights with interactive charts and personalized financial recommendations.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                    <h4>Smart Alerts</h4>
+                    <p>Receive intelligent notifications when you're overspending or when unusual activity is detected.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-phone-fill"></i>
+                    </div>
+                    <h4>Mobile Optimized</h4>
+                    <p>Access your financial dashboard anywhere with our fully responsive, mobile-first design.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section id="how-it-works" class="py-5" style="background: var(--lighter-purple);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted">Get started in 3 simple steps</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-connector d-none d-md-block"></div>
+                    <h4>Connect Your Data</h4>
+                    <p class="text-muted">Upload bank statements or connect UPI transaction history securely.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-connector d-none d-md-block"></div>
+                    <h4>AI Analysis</h4>
+                    <p class="text-muted">Our AI instantly categorizes and analyzes your spending patterns.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>Get Insights</h4>
+                    <p class="text-muted">View predictions, set budgets, and receive personalized advice.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials" class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Loved by Thousands</h2>
+            <p class="lead text-muted">See what our users have to say</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        BudgetWise AI completely transformed how I manage money. The predictions are incredibly accurate!
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-light p-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person-fill text-muted"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Arjun Mehta</strong><br>
+                                <small class="text-muted">Software Engineer, Bangalore</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        Finally, a finance app that understands Indian spending patterns. Saved ₹20,000 in 3 months!
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-light p-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person-fill text-muted"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Priya Sharma</strong><br>
+                                <small class="text-muted">Product Manager, Mumbai</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        The AI insights are like having a personal financial advisor. Best investment in my financial health!
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-light p-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person-fill text-muted"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Raj Patel</strong><br>
+                                <small class="text-muted">Entrepreneur, Delhi</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="py-5" style="background: var(--lighter-purple);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Simple, Transparent Pricing</h2>
+            <p class="lead text-muted">Start free, upgrade when you need more</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h4 class="mb-3">Free Forever</h4>
+                        <div class="display-4 fw-bold mb-3">₹0</div>
+                        <p class="text-muted mb-4">Perfect for getting started</p>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Track up to 100 transactions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Basic AI predictions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> 5 expense categories</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Monthly reports</li>
+                        </ul>
+                        <a href="{{ url_for('signup') }}" class="btn btn-premium-outline w-100">Get Started</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-lg h-100" style="transform: scale(1.05);">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <span class="premium-badge">MOST POPULAR</span>
+                        </div>
+                        <h4 class="mb-3">Pro</h4>
+                        <div class="display-4 fw-bold mb-3">₹199<small class="fs-6 text-muted">/month</small></div>
+                        <p class="text-muted mb-4">For serious money managers</p>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Unlimited transactions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Advanced AI predictions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Unlimited categories</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Real-time alerts</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Priority support</li>
+                        </ul>
+                        <a href="{{ url_for('signup') }}" class="btn btn-premium w-100">Start Free Trial</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container position-relative">
+        <h2 class="display-4 fw-bold mb-4">Ready to Transform Your Finances?</h2>
+        <p class="lead mb-5">Join 50,000+ Indians who are already saving smarter with AI</p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg px-5">
+                Go to Dashboard <i class="bi bi-arrow-right"></i>
+            </a>
+        {% else %}
+            <a href="{{ url_for('signup') }}" class="btn btn-light btn-lg px-5">
+                Start Your Free Trial <i class="bi bi-arrow-right"></i>
+            </a>
+        {% endif %}
+        
+        <div class="mt-5">
+            <p class="mb-0">
+                <i class="bi bi-check-circle"></i> No credit card required
+                <span class="mx-3">•</span>
+                <i class="bi bi-check-circle"></i> Free forever plan available
+                <span class="mx-3">•</span>
+                <i class="bi bi-check-circle"></i> Cancel anytime
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Demo Modal -->
+<div class="modal fade" id="demoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">BudgetWise AI Demo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ratio ratio-16x9">
+                    <div class="d-flex align-items-center justify-content-center bg-light">
+                        <div class="text-center">
+                            <i class="bi bi-play-circle" style="font-size: 4rem; color: var(--primary-purple);"></i>
+                            <p class="mt-3">Interactive demo coming soon!</p>
+                            <p class="text-muted">Meanwhile, try our free version to experience all features.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('signup') }}" class="btn btn-premium">Start Free Trial</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5><i class="bi bi-wallet2"></i> BudgetWise AI</h5>
+                <p class="text-muted mt-3">
+                    India's most trusted AI-powered personal finance platform. Transform your financial future today.
+                </p>
+                <div class="social-icons mt-4">
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-twitter"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            
+            <div class="col-md-2 mb-4">
+                <h6>Product</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">Roadmap</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-md-2 mb-4">
+                <h6>Company</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-md-2 mb-4">
+                <h6>Support</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Status</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-md-2 mb-4">
+                <h6>Legal</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="#">Licenses</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+        
+        <div class="text-center">
+            <p class="mb-0">© 2025 BudgetWise AI. All rights reserved. Made with ❤️ in India</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}

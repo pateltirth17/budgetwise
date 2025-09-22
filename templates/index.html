@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetWise AI - Smart Personal Finance Tracker</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-wallet2"></i> BudgetWise AI
+            </a>
+            <span class="navbar-text text-white">
+                Smart Finance Tracking for India 🇮🇳
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container mt-4">
+        <!-- Upload Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cloud-upload"></i> Upload Transaction Data
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="csvFile" class="form-label">
+                                            Select your bank/UPI transaction CSV file
+                                        </label>
+                                        <input type="file" 
+                                               class="form-control" 
+                                               id="csvFile" 
+                                               name="file" 
+                                               accept=".csv" 
+                                               required>
+                                        <div class="form-text">
+                                            Supported: Bank statements, UPI transaction history (CSV format)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="bi bi-graph-up"></i> Analyze & Predict
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Loading Spinner -->
+                        <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <p class="mt-2">Analyzing your transactions with AI...</p>
+                        </div>
+                        
+                        <!-- Error Alert -->
+                        <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section (Initially Hidden) -->
+        <div id="resultsSection" style="display: none;">
+            <!-- Insights Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h6 class="card-title">Current Month Total</h6>
+                            <h3 id="currentTotal">₹0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h6 class="card-title">Predicted Next 30 Days</h6>
+                            <h3 id="predictedTotal">₹0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h6 class="card-title">Transactions</h6>
+                            <h3 id="transactionCount">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h6 class="card-title">Top Category</h6>
+                            <h4 id="topCategory">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row mb-4">
+                <!-- Category Breakdown Pie Chart -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-pie-chart"></i> Expense Categories
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="categoryChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spending Trend Line Chart -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-graph-up-arrow"></i> Spending Trend & Forecast
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-gradient-info text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-lightbulb"></i> AI-Powered Insights
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="insightsList">
+                                <!-- Insights will be dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                BudgetWise AI © 2025 | Built with ❤️ for Indian Users
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

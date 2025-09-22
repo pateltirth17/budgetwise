@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - BudgetWiseAI{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <hr>
+                    <p class="small text-muted">Member since {{ member_since }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Account Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <h3 class="text-primary">{{ total_transactions }}</h3>
+                            <p class="text-muted">Total Transactions</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h3 class="text-danger">₹{{ "{:,.0f}".format(total_spending) }}</h3>
+                            <p class="text-muted">Total Spending</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h3 class="text-success">₹{{ "{:,.0f}".format(total_income) }}</h3>
+                            <p class="text-muted">Total Income</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Quick Actions</h6>
+                    <div class="d-grid gap-2 d-md-block">
+                        <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a href="{{ url_for('export_transactions') }}" class="btn btn-outline-success">
+                            <i class="fas fa-download"></i> Export Data
+                        </a>
+                        <button class="btn btn-outline-danger" onclick="confirmDeleteAccount()">
+                            <i class="fas fa-trash"></i> Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDeleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        // Implement account deletion
+        alert('Please contact support to delete your account.');
+    }
+}
+</script>
+{% endblock %}
