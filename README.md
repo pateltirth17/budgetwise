@@ -1,4 +1,4 @@
-# BudgetWise - Personal Finance Management System
+# BudgetWise: AI-based Expense Forecasting Tool
 
 A comprehensive web application for personal finance management with AI-powered spending predictions using LSTM neural networks.
 
