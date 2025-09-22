@@ -35,7 +35,7 @@ A comprehensive web application for personal finance management with AI-powered 
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/budgetwise.git
+git clone https://github.com/pateltirth17/budgetwise.git
 cd budgetwise
 ```
 
