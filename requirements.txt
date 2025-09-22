@@ -17,9 +17,9 @@ email-validator==2.1.0
 gunicorn==21.2.0
 
 # Machine Learning
-tensorflow==2.20.0
+tensorflow==2.13.0
 keras==2.13.1
-scikit-learn==1.3.0
+scikit-learn==1.3.2
 joblib==1.3.2
 
 # Data Processing
@@ -32,7 +32,6 @@ pytz==2023.3
 matplotlib==3.7.2
 seaborn==0.12.2
 reportlab==4.0.4
-matplotlib==3.7.1
 
 # Development & Testing
 pytest==7.4.2
