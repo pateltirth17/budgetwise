@@ -47,7 +47,7 @@
         }
         .form-control:focus {
             border-color:  #8B7AA8;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(139, 122, 168, 0.25);
         }
         .btn-primary {
             background: #B8A9D3;
@@ -64,7 +64,7 @@
         }
         .btn:active,
         .btn.active {
-        background-color: black !important;
+            background-color: #000000 !important;
         }
         .text-danger {
             font-size: 12px;
@@ -75,12 +75,67 @@
             font-size: 14px;
         }
         .login-link a {
-            color: #667eea;
+            color: #8B7AA8;
             text-decoration: none;
             font-weight: 500;
         }
         .login-link a:hover {
             text-decoration: underline;
+        }
+        
+        /* Password field with eye icon styles */
+        .password-wrapper {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #8B7AA8;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 2;
+        }
+        .toggle-password:hover {
+            color: #6B5A88;
+        }
+        .toggle-password:focus {
+            outline: none;
+        }
+        
+        /* Password requirements styles */
+        .password-requirements {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .requirement:last-child {
+            margin-bottom: 0;
+        }
+        .requirement i {
+            width: 16px;
+            margin-right: 8px;
+            text-align: center;
+        }
+        .requirement.valid {
+            color: #28a745;
+        }
+        .requirement.valid i:before {
+            content: "\F26B"; /* bi-check-circle-fill */
+        }
+        .requirement.invalid i:before {
+            content: "\F287"; /* bi-circle */
         }
     </style>
 </head>
@@ -132,7 +187,36 @@
                 
                 <div class="mb-3">
                     {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control", placeholder="Create a strong password") }}
+                    <div class="password-wrapper">
+                        {{ form.password(class="form-control password-input", placeholder="Create a strong password", **{'data-password-field': 'true'}) }}
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="password-requirements">
+                        <div class="requirement invalid" data-req="length">
+                            <i class="bi bi-circle"></i>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="requirement invalid" data-req="uppercase">
+                            <i class="bi bi-circle"></i>
+                            <span>One uppercase letter</span>
+                        </div>
+                        <div class="requirement invalid" data-req="lowercase">
+                            <i class="bi bi-circle"></i>
+                            <span>One lowercase letter</span>
+                        </div>
+                        <div class="requirement invalid" data-req="number">
+                            <i class="bi bi-circle"></i>
+                            <span>One number</span>
+                        </div>
+                        <div class="requirement invalid" data-req="special">
+                            <i class="bi bi-circle"></i>
+                            <span>One special character (!@#$%^&*)</span>
+                        </div>
+                    </div>
+                    
                     {% if form.password.errors %}
                         <div class="text-danger mt-1">
                             {% for error in form.password.errors %}
@@ -144,7 +228,12 @@
                 
                 <div class="mb-4">
                     {{ form.confirm_password.label(class="form-label") }}
-                    {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+                    <div class="password-wrapper">
+                        {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     {% if form.confirm_password.errors %}
                         <div class="text-danger mt-1">
                             {% for error in form.confirm_password.errors %}
@@ -164,5 +253,72 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to toggle password visibility
+        function togglePasswordVisibility(button) {
+            const wrapper = button.closest('.password-wrapper');
+            const input = wrapper.querySelector('input');
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+        
+        // Password validation - wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInputs = document.querySelectorAll('input[type="password"], input[data-password-field]');
+            const passwordInput = passwordInputs[0]; // First password input
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    validatePassword(this.value);
+                });
+                
+                passwordInput.addEventListener('keyup', function() {
+                    validatePassword(this.value);
+                });
+            }
+        });
+        
+        function validatePassword(password) {
+            // Check each requirement
+            const requirements = {
+                'length': password.length >= 8,
+                'uppercase': /[A-Z]/.test(password),
+                'lowercase': /[a-z]/.test(password),
+                'number': /\d/.test(password),
+                'special': /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+            
+            // Update UI for each requirement
+            Object.keys(requirements).forEach(req => {
+                const element = document.querySelector(`[data-req="${req}"]`);
+                if (element) {
+                    const icon = element.querySelector('i');
+                    if (requirements[req]) {
+                        element.classList.remove('invalid');
+                        element.classList.add('valid');
+                        icon.classList.remove('bi-circle');
+                        icon.classList.add('bi-check-circle-fill');
+                    } else {
+                        element.classList.remove('valid');
+                        element.classList.add('invalid');
+                        icon.classList.remove('bi-check-circle-fill');
+                        icon.classList.add('bi-circle');
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
+            
+                
+            
