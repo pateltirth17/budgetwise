@@ -103,6 +103,13 @@ login_manager.login_message_category = 'info'
 CORS(app)
 mail = Mail(app)
 
+with app.app_context():
+    try:
+        db.create_all()
+        print("✓ Database tables created successfully!")
+    except Exception as e:
+        print(f"Warning: Could not create tables: {e}")
+        
 # Create necessary directories
 for folder in ['uploads', 'models', 'static/images', 'data', 'templates/email']:
     os.makedirs(folder, exist_ok=True)
