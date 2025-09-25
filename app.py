@@ -465,6 +465,22 @@ def index():
         return redirect(url_for('dashboard'))
     return render_template('landing.html')
 
+@app.route('/create-tables-now')
+def create_tables():
+    try:
+        db.create_all()
+        # Check what tables were created
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        if tables:
+            return f"✅ Success! Tables created: {tables}"
+        else:
+            return "⚠️ No tables found. Check DATABASE_URL in environment variables."
+    except Exception as e:
+        return f"❌ Error: {str(e)}"
+        
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     """User registration"""
